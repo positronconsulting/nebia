@@ -9,7 +9,18 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Método no permitido" });
 
   try {
-    const { respuestas, comentarioLibre, correo, nombre, institucion, tipoInstitucion, temasValidos, edad, genero, rol } = req.body;
+    const {
+      respuestas,
+      comentarioLibre,
+      correo,
+      nombre,
+      institucion,
+      tipoInstitucion,
+      temasValidos,
+      edad,
+      genero,
+      rol
+    } = req.body;
 
     console.log("📥 Data recibida en analizar-test NEBIA:", {
       correo, institucion, tipoInstitucion, nombre, edad, genero, rol, temasValidos, comentarioLibre, respuestas
@@ -18,7 +29,7 @@ export default async function handler(req, res) {
     const apiKey = process.env.OPENAI_API_KEY;
 
     const prompt = `
-Eres NEBIA, la mejor psicóloga del mundo especializada en salud mental aeronáutica. Tienes entrenamiento clínico avanzado en psicometría, salud mental y análisis emocional. Acabas de aplicar un test inicial a un(a) ${rol} de genero ${genero}, de ${edad} años, que respondió una serie de reactivos tipo Likert ("Nunca", "Casi nunca", "A veces", "Casi siempre", "Siempre") sobre los siguientes temas emocionales:
+Eres NEBIA, la mejor psicóloga del mundo especializada en salud mental aeronáutica. Tienes entrenamiento clínico avanzado en psicometría, salud mental y análisis emocional. Acabas de aplicar un test inicial a un(a) ${rol} de género ${genero}, de ${edad} años, que respondió una serie de reactivos tipo Likert ("Nunca", "Casi nunca", "A veces", "Casi siempre", "Siempre") sobre los siguientes temas emocionales:
 
 ${temasValidos.join(", ")}
 
@@ -33,27 +44,26 @@ Tu tarea es:
    - AUDIT y ASSIST (consumo)
    - PSS (estrés)
    - Maslach Burnout Inventory (burnout)
-   - SCL-90-R (evaluación general de síntomas)
+   - SCL-90-R (síntomas generales)
    - Rosenberg (autoestima)
    - IAT (adicciones digitales)
    - PSQI (sueño)
-   - Escala de soledad UCLA
+   - Escala de Soledad UCLA
    - Y-BOCS (TOC)
 
-2. SIEMPRE Asignar una calificación emocional del 1 al 100 para cada tema que te mandé arriba.
+2. SIEMPRE asigna una calificación emocional del 1 al 100 para cada tema mencionado.
 
-3. Redactar un perfil emocional con un lenguaje empático, humano y profesional, que resuma el estado emocional de la persona basado en su test. Usa un tono comprensivo, sin juicios ni tecnicismos innecesarios.
+3. Redacta un perfil emocional con lenguaje empático, humano y profesional. Que refleje el estado emocional del usuario sin tecnicismos ni juicios.
 
-4. IMPORTANTÍSIMO: Siempre que detectes señales o palabras literales de crisis emocional, suicidio, burnout, peligro, peligro físico, encierro, acoso, bullying, bulimia, anorexia, violación, ludopatía, luto o pérdida o trastornos alimenticios, escribe exactamente: "SOS". Si no detectas señales de este tipo, escribe exactamente: "OK".
+4. IMPORTANTÍSIMO: si detectas señales o palabras como suicidio, crisis, acoso, encierro, burnout severo, bulimia, anorexia, violación, luto, pérdida o ideas de muerte, escribe exactamente: "SOS". Si no, escribe "OK".
 
-Devuelve un JSON con esta estructura:
-
+Devuelve un JSON como este:
 {
   "calificaciones": {
-    "Tema": número,
-    ...
+    "Tema1": 94,
+    "Tema2": 73
   },
-  "perfil": "Texto empático y clínico",
+  "perfil": "Texto empático y humano",
   "SOS": "OK" // o "SOS"
 }
 
@@ -62,7 +72,7 @@ ${JSON.stringify(respuestas, null, 2)}
 
 Comentario libre:
 "${comentarioLibre}"
-`.trim();
+    `.trim();
 
     const openAiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -91,15 +101,15 @@ Comentario libre:
       console.log("✅ JSON interpretado:", resultado);
     } catch (err) {
       console.error("❌ Error al parsear JSON:", err);
-      return res.status(500).json({ ok: false, error: "Formato inválido" });
+      return res.status(500).json({ ok: false, error: "Formato inválido en la respuesta del modelo" });
     }
 
-    // ✅ Registrar tokens en hoja de NEBIA
+    // Registrar tokens en Google Sheets NEBIA
     const usage = data.usage || {};
     const costoUSD = usage.total_tokens ? usage.total_tokens * 0.00001 : 0;
 
     try {
-      await fetch("https://script.google.com/macros/s/AKfycbyHn1qrFocq0pkjujypoB-vK7MGmGFz6vH4t2qVfHcziTcuMB3abi3UegPGdNno3ibULA/exec", {
+      await fetch("https://script.google.com/macros/s/AKfycbwcdVoj4E3Yqi954UfyQldrvEUsNxC_6Ls33XwKVZYNj5ekAaReh_P7jPUNzZMNS9_N/exec", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -112,9 +122,9 @@ Comentario libre:
           costoUSD: parseFloat(costoUSD.toFixed(6))
         })
       });
-      console.log("🧾 Tokens registrados correctamente (NEBIA).");
+      console.log("🧾 Tokens registrados correctamente en NEBIA.");
     } catch (e) {
-      console.warn("⚠️ Error al registrar tokens en NEBIA:", e.message);
+      console.warn("⚠️ Error al registrar tokens NEBIA:", e.message);
     }
 
     return res.status(200).json({
@@ -127,6 +137,7 @@ Comentario libre:
 
   } catch (err) {
     console.error("🔥 Error en analizar-test NEBIA:", err);
-    return res.status(500).json({ ok: false, error: "Error interno" });
+    return res.status(500).json({ ok: false, error: "Error interno del servidor" });
   }
 }
+
