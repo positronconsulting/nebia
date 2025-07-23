@@ -1,3 +1,5 @@
+// archivo: /pages/api/verificar-codigo.js
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "https://www.positronconsulting.com");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -9,16 +11,17 @@ export default async function handler(req, res) {
   try {
     const { codigo, email, yaRegistrado } = req.body;
 
-    console.log("📥 Datos recibidos:", { codigo, email, yaRegistrado });
+    console.log("📥 Datos recibidos en verificar-codigo NEBIA:", { codigo, email, yaRegistrado });
 
     if (!codigo || !email) {
       console.log("❌ Faltan parámetros:", { codigo, email });
       return res.status(400).json({ error: "Faltan parámetros" });
     }
 
+    // ✅ Nuevo endpoint de Google Apps Script para NEBIA
     const endpointAppsScript = "https://script.google.com/macros/s/AKfycbx5svGVrse8xvvUC-65TPo7fo1ElhIniCFa5m6QtBiKC4qYXrPdlAjqDc1xCP_UiXBI/exec";
 
-    console.log("📨 Enviando al Apps Script:", endpointAppsScript);
+    console.log("📨 Enviando a Apps Script NEBIA:", endpointAppsScript);
 
     const respuesta = await fetch(endpointAppsScript, {
       method: "POST",
@@ -30,12 +33,12 @@ export default async function handler(req, res) {
 
     if (!respuesta.ok) {
       const errorText = await respuesta.text();
-      console.error("❌ Error al conectar con Google Apps Script:", errorText);
+      console.error("❌ Error al conectar con Google Apps Script NEBIA:", errorText);
       throw new Error("Error al conectar con el verificador");
     }
 
     const resultado = await respuesta.json();
-    console.log("🔒 Resultado desde Apps Script:", resultado);
+    console.log("🔒 Resultado desde Apps Script NEBIA:", resultado);
 
     if (!resultado.acceso) {
       return res.json({
@@ -52,7 +55,7 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error("🧨 Error en verificar-codigo:", error.message);
+    console.error("🧨 Error en verificar-codigo NEBIA:", error.message);
     return res.status(500).json({ error: "Error interno del servidor" });
   }
 }
