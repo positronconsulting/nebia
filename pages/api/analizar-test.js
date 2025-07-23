@@ -1,4 +1,4 @@
-// archivo: /api/analizar-test.js (Vercel Middleware)
+// archivo: /pages/api/analizar-test.js (NEBIA)
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "https://www.positronconsulting.com");
@@ -9,22 +9,16 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Método no permitido" });
 
   try {
-    const { respuestas, comentarioLibre, correo, nombre, institucion, tipoInstitucion, temasValidos } = req.body;
+    const { respuestas, comentarioLibre, correo, nombre, institucion, tipoInstitucion, temasValidos, edad, genero, rol } = req.body;
 
-    console.log("📥 Data recibida en analizar-test:", {
-      correo,
-      institucion,
-      tipoInstitucion,
-      nombre,
-      temasValidos,
-      comentarioLibre,
-      respuestas
+    console.log("📥 Data recibida en analizar-test NEBIA:", {
+      correo, institucion, tipoInstitucion, nombre, edad, genero, rol, temasValidos, comentarioLibre, respuestas
     });
 
     const apiKey = process.env.OPENAI_API_KEY;
 
     const prompt = `
-Eres AUREA, la mejor psicóloga del mundo, con entrenamiento clínico avanzado en psicometría, salud mental y análisis emocional. Acabas de aplicar un test inicial a un usuario que respondió una serie de reactivos tipo Likert ("Nunca", "Casi nunca", "A veces", "Casi siempre", "Siempre") sobre los siguientes temas emocionales:
+Eres NEBIA, la mejor psicóloga del mundo especializada en salud mental aeronáutica. Tienes entrenamiento clínico avanzado en psicometría, salud mental y análisis emocional. Acabas de aplicar un test inicial a un(a) ${rol} de genero ${genero}, de ${edad} años, que respondió una serie de reactivos tipo Likert ("Nunca", "Casi nunca", "A veces", "Casi siempre", "Siempre") sobre los siguientes temas emocionales:
 
 ${temasValidos.join(", ")}
 
@@ -50,18 +44,16 @@ Tu tarea es:
 
 3. Redactar un perfil emocional con un lenguaje empático, humano y profesional, que resuma el estado emocional de la persona basado en su test. Usa un tono comprensivo, sin juicios ni tecnicismos innecesarios.
 
-4. IMPORTANTÍSIMO: Siempre que detectes señales o palabras literales de crisis emocional, suicidio, burnout, peligro, peligro físico, encierro, acoso, bullying, bulimia, anorexia, violación, ludopatía o trastornos alimenticios, escribe exactamente: "SOS". Si no detectas señales de este tipo, escribe exactamente: "OK".
+4. IMPORTANTÍSIMO: Siempre que detectes señales o palabras literales de crisis emocional, suicidio, burnout, peligro, peligro físico, encierro, acoso, bullying, bulimia, anorexia, violación, ludopatía, luto o pérdida o trastornos alimenticios, escribe exactamente: "SOS". Si no detectas señales de este tipo, escribe exactamente: "OK".
 
-Instrucciones estrictas:
-- Devuelve la información como un JSON con exactamente esta estructura:
+Devuelve un JSON con esta estructura:
 
 {
   "calificaciones": {
-    "Depresión": 72,
-    "Ansiedad": 64,
+    "Tema": número,
     ...
   },
-  "perfil": "Texto del perfil emocional en tono profesional y empático.",
+  "perfil": "Texto empático y clínico",
   "SOS": "OK" // o "SOS"
 }
 
@@ -80,16 +72,14 @@ Comentario libre:
       },
       body: JSON.stringify({
         model: "gpt-4",
-        messages: [
-          { role: "user", content: prompt }
-        ],
+        messages: [{ role: "user", content: prompt }],
         temperature: 0.7,
         max_tokens: 1000
       })
     });
 
     const data = await openAiResponse.json();
-    console.log("📩 Respuesta de OpenAI cruda:", data);
+    console.log("📩 Respuesta de OpenAI NEBIA:", data);
 
     if (!data.choices || !data.choices[0]?.message?.content) {
       return res.status(500).json({ ok: false, error: "Respuesta vacía de OpenAI" });
@@ -104,7 +94,7 @@ Comentario libre:
       return res.status(500).json({ ok: false, error: "Formato inválido" });
     }
 
-    // ✅ Registrar tokens
+    // ✅ Registrar tokens en hoja de NEBIA
     const usage = data.usage || {};
     const costoUSD = usage.total_tokens ? usage.total_tokens * 0.00001 : 0;
 
@@ -122,9 +112,9 @@ Comentario libre:
           costoUSD: parseFloat(costoUSD.toFixed(6))
         })
       });
-      console.log("🧾 Tokens registrados correctamente.");
+      console.log("🧾 Tokens registrados correctamente (NEBIA).");
     } catch (e) {
-      console.warn("⚠️ Error al registrar tokens:", e.message);
+      console.warn("⚠️ Error al registrar tokens en NEBIA:", e.message);
     }
 
     return res.status(200).json({
@@ -136,7 +126,7 @@ Comentario libre:
     });
 
   } catch (err) {
-    console.error("🔥 Error en analizar-test:", err);
+    console.error("🔥 Error en analizar-test NEBIA:", err);
     return res.status(500).json({ ok: false, error: "Error interno" });
   }
 }
