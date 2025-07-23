@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     }
 
     // ✅ Nuevo endpoint de Google Apps Script para NEBIA
-    const endpointAppsScript = "https://script.google.com/macros/s/AKfycbx5svGVrse8xvvUC-65TPo7fo1ElhIniCFa5m6QtBiKC4qYXrPdlAjqDc1xCP_UiXBI/exec";
+    const endpointAppsScript = "https://script.google.com/macros/s/AKfycbyDqpefLSuXm60WfzsQbarPZPUfgS0PMwKqKenFuUkn3actudXJ4baR28rhb7uWQv0l/exec";
 
     console.log("📨 Enviando a Apps Script NEBIA:", endpointAppsScript);
 
