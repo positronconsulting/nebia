@@ -1,12 +1,21 @@
 // archivo: /pages/api/verificar-codigo.js
 
 export default async function handler(req, res) {
+  // 🛡️ Configurar CORS
   res.setHeader("Access-Control-Allow-Origin", "https://www.positronconsulting.com");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Método no permitido" });
+  // ✅ Responder preflight (CORS)
+  if (req.method === "OPTIONS") {
+    res.status(200).end();
+    return; // 🔒 Detiene ejecución posterior
+  }
+
+  // ❌ Rechazar métodos no permitidos
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Método no permitido" });
+  }
 
   try {
     const { codigo, email, yaRegistrado } = req.body;
@@ -18,7 +27,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Faltan parámetros" });
     }
 
-    // ✅ Nuevo endpoint de Google Apps Script para NEBIA
+    // ✅ Endpoint de verificación con Google Sheets
     const endpointAppsScript = "https://script.google.com/macros/s/AKfycbyDqpefLSuXm60WfzsQbarPZPUfgS0PMwKqKenFuUkn3actudXJ4baR28rhb7uWQv0l/exec";
 
     console.log("📨 Enviando a Apps Script NEBIA:", endpointAppsScript);
